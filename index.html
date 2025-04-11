@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather Widget</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Fonts and Weather Icons -->
+  <link href="https://fonts.googleapis.com/css?family=Poiret+One" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.9/css/weather-icons.min.css">
+
+  <style>
+    body {
+      background-color: #A64253;
+      font-family: 'Poiret One', cursive;
+      margin: 0;
+      padding: 0;
+    }
+
+    .widget {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: flex;
+      height: 300px;
+      width: 600px;
+      transform: translate(-50%, -50%);
+      flex-wrap: wrap;
+      cursor: pointer;
+      border-radius: 20px;
+      box-shadow: 0 27px 55px 0 rgba(0, 0, 0, 0.3), 0 17px 17px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .weatherIcon {
+      flex: 1 100%;
+      height: 60%;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      background: #FAFAFA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 100px;
+    }
+
+    .weatherInfo {
+      flex: 0 0 70%;
+      height: 40%;
+      background: #080705;
+      border-bottom-left-radius: 20px;
+      display: flex;
+      align-items: center;
+      color: white;
+    }
+
+    .temperature {
+      flex: 0 0 40%;
+      font-size: 65px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .description {
+      flex: 0 60%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 10px;
+    }
+
+    .weatherCondition {
+      text-transform: uppercase;
+      font-size: 35px;
+      font-weight: 100;
+    }
+
+    .place {
+      font-size: 15px;
+    }
+
+    .date {
+      flex: 0 0 30%;
+      height: 40%;
+      background: #70C1B3;
+      border-bottom-right-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .search-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #search {
+      font-size: 20px;
+      padding: 10px 20px;
+      border-radius: 25px;
+      border: none;
+      outline: none;
+      box-shadow: 0px 0px 5px grey;
+    }
+
+    p {
+      position: fixed;
+      bottom: 0%;
+      right: 2%;
+    }
+
+    p a {
+      text-decoration: none;
+      color: #E4D6A7;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <form id="weatherForm">
+      <input type="search" id="search" placeholder="Search by city name" required>
+    </form>
+  </div>
+
+  <article class="widget">
+    <div class="weatherIcon" id="weatherIcon"><i class="wi wi-day-cloudy"></i></div>
+    <div class="weatherInfo">
+      <div class="temperature"><span id="temp">25&deg;</span></div>
+      <div class="description">
+        <div class="weatherCondition" id="condition">CLOUDY</div>
+        <div class="place" id="place">New York, NY</div>
+      </div>
+    </div>
+    <div class="date" id="date">1st Jan</div>
+  </article>
+
+  <p><a href="https://codepen.io/nerios/full/jWjmby/">Inspired by: https://codepen.io/nerios/full/jWjmby/. Implemented using FlexBox.</a></p>
+
+  <script>
+    const API_KEY = `eacde46e235d7714823747216b82730e`;
+
+    const form = document.getElementById("weatherForm");
+    const search = document.getElementById("search");
+    const temp = document.getElementById("temp");
+    // const condition = document.getElementById("condition");
+    const place = document.getElementById("place");
+    const date = document.getElementById("date");
+    const icon = document.getElementById("weatherIcon");
+
+    const getIconClass = (main) => {
+      const map = {
+        Clear: "wi-day-sunny",
+        Clouds: "wi-day-cloudy",
+        Rain: "wi-rain",
+        Snow: "wi-snow",
+        Thunderstorm: "wi-thunderstorm",
+        Drizzle: "wi-sprinkle",
+        Mist: "wi-fog",
+        Smoke: "wi-smoke",
+        Haze: "wi-day-haze",
+        Dust: "wi-dust",
+        Fog: "wi-fog",
+        Sand: "wi-sandstorm",
+        Ash: "wi-volcano",
+        Squall: "wi-strong-wind",
+        Tornado: "wi-tornado"
+      };
+      return map[main] || "wi-na";
+    };
+
+    const getDate = () => {
+      const today = new Date();
+      const options = { day: 'numeric', month: 'short' };
+      return today.toLocaleDateString('en-US', options);
+    };
+
+    const getWeather = async (city) => {
+      try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.cod === "404") {
+          alert("City not found!");
+          return;
+        }
+
+        temp.innerHTML = `${Math.round(data.main.temp)}&deg;`;
+        condition.textContent = data.weather[0].main;
+        place.textContent = `${data.name}, ${data.sys.country}`;
+        date.textContent = getDate();
+        icon.innerHTML = `<i class="wi ${getIconClass(data.weather[0].main)}"></i>`;
+
+      } catch (error) {
+        alert("Failed to fetch weather data!");
+        console.error(error);
+      }
+    };
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      getWeather(search.value.trim());
+    });
+
+    // Load default weather on first load
+    getWeather("Patna");
+  </script>
+
+</body>
+</html>
